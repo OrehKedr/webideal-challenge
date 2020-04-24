@@ -1,18 +1,28 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <h1>Welcome to github search engine!</h1>
+    <SearchForm />
+    <img src="@/assets/gitcat.png" alt="Github cat"/>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import SearchForm from '@/components/SearchForm.vue'
 
 export default {
   name: 'Home',
   components: {
-    HelloWorld
+    SearchForm
   }
 }
 </script>
+
+<style scoped>
+h1 {
+  margin-bottom: 2rem;
+}
+img {
+  margin-top: 2.5rem;
+}
+</style>
