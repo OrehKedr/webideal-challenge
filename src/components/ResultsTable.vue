@@ -23,9 +23,7 @@
       </tbody>
     </table>
   </div>
-  <keep-alive>
-    <Pagination v-bind:current="currentPage" v-bind:totalPages="pageCount" @page-changed="changePage" />
-  </keep-alive>
+  <Pagination v-bind:current="currentPage" v-bind:totalPages="pageCount" @page-changed="changePage" />
 </div>
 
 </template>
@@ -72,7 +70,6 @@ export default {
           page: this.reqPage(page),
           searchStr: this.currentSearchStr
         };
-        // this.storeCurrentPageRT(page);
         await this.fetchForks(params);
       } else {
         this.currentPage = page;
@@ -90,22 +87,21 @@ export default {
     }
   },
   created() {
-    console.log('ResultTable created-хук');
     this.currentPage = this.currentPageRT;
 
-    if (this.$route.name == 'seacrh&page') {
-      let repoName = this.$route.query;
-      let page = this.$router.params.pathMatch;
-      console.log('this.$route.name: ', this.$route.name);
-      console.log('repoName: ', repoName);
-      console.log('page: ', page);
-    }
+    // if (this.$route.name == 'seacrh&page') {
+    //   let repoName = this.$route.query;
+    //   let page = this.$router.params.pathMatch;
+    //   console.log('this.$route.name: ', this.$route.name);
+    //   console.log('repoName: ', repoName);
+    //   console.log('page: ', page);
+    // }
   },
   mounted() {
-    console.log('ResultTable mounted-хук');
+    // console.log('ResultTable mounted-хук');
   },
   updated() {
-    console.log('ResultTable updated-хук');
+    // console.log('ResultTable updated-хук');
   }
 }
 </script>

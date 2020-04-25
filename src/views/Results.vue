@@ -6,9 +6,7 @@
       <Loader />
     </div>
     <div v-else-if="forksCount">
-      <keep-alive>
-        <ResultsTable />
-      </keep-alive>
+      <ResultsTable />
     </div>
     <div v-else class="el-font-st">
       <p>Форки отсутствуют</p>
@@ -34,12 +32,12 @@ export default {
     ...mapGetters(['isLoading', 'forksCount'])
   },
   created() {
-    console.log('Results created-хук');
-    console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
+    // console.log('Results created-хук');
+    // console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
   },
   updated() {
-    console.log('Results updated-хук');
-    console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
+    // console.log('Results updated-хук');
+    // console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
   }
 }
 </script>

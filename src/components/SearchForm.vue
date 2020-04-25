@@ -28,7 +28,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['fetchForks', 'fetchForksCount', 'readCachedRepo']),
+    ...mapActions(['fetchForks', 'fetchForksCount', 'readCachedRepo', 'storeSearchStr']),
     async onSubmit() {
       let params = {
           page: 1,
@@ -38,12 +38,11 @@ export default {
       // Если ранее делали запрос по такой строке,
       // то данные кэшированы.      
       if (this.isCaсhed(this.form.searchStr)) {
-        console.log('Внутри onSubmit. Данные кэшированы. searchStr: ', this.form.searchStr);
         this.readCachedRepo(params);
+        this.storeSearchStr(this.form.searchStr);
       } else {
         await this.fetchForksCount(this.forksCountReqURL);
         if (this.forksCount !== 0) {
-          console.log('Внутри onSubmit: ', params);
           await this.fetchForks(params);
         } else {
           console.log('Количество форков = 0.');
@@ -56,7 +55,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['forksCount', 'isCaсhed']),
+    ...mapGetters(['forksCount', 'isCaсhed', 'currentSearchStr']),
     isValid() {
       // Можно продумать сложный алгоритм проверки 
       // введёного значения пути на валидность.
@@ -72,6 +71,13 @@ export default {
       //https://api.github.com/search/repositories?q=user:kubernetes repo:enhancements enhancements
       return `https://api.github.com/search/repositories?q=user:${repoOwner} repo:${repoName} ${repoName}`;
     },
+  },
+  watch: {
+    // Для экземпляров SearchForm синхронизируем 
+    // значения поисковой строки при переходе по роутам.
+    currentSearchStr(newValue) {
+      this.form.searchStr = newValue;
+    }
   }
 }
 </script>
