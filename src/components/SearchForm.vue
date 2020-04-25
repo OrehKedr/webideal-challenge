@@ -78,6 +78,9 @@ export default {
     currentSearchStr(newValue) {
       this.form.searchStr = newValue;
     }
+  },
+  created() {
+    this.form.searchStr = this.currentSearchStr;
   }
 }
 </script>
