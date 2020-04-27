@@ -39,12 +39,11 @@ export default {
   },
   data() {
     return {
-      perPage: 10,  // Количество форков на страницу таблицы "результат поиска".
       currentPage: 1,  // Указатель на страницу в пагинации.
     }
   },
   computed: {
-    ...mapGetters(['allForks', 'forksCount','forksPerReqPage', 'reqURL', 'currentPageRT', 'currentSearchStr']),
+    ...mapGetters(['allForks', 'forksCount','forksPerReqPage', 'reqURL', 'currentPageRT', 'currentSearchStr', 'perPage']),
     displayedForks() {
       let correctedCurPage = this.currentPage - this.reqPage(this.currentPage) * this.pageRatio() + this.pageRatio();
       let from = (correctedCurPage - 1) * this.perPage;
@@ -88,12 +87,6 @@ export default {
   },
   created() {
     this.currentPage = this.currentPageRT;
-  },
-  mounted() {
-    // console.log('ResultTable mounted-хук');
-  },
-  updated() {
-    // console.log('ResultTable updated-хук');
   }
 }
 </script>

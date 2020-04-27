@@ -19,8 +19,8 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "about" */ '../views/Results.vue')
   },
   {
-    path: '/search&page',
-    name: 'search&page',
+    path: '/search',
+    name: 'Search',
     component: () => import(/* webpackChunkName: "about" */ '../views/Results.vue'),
     props: (route) => ({ repository: route.query.repository,  page: route.query.page})
   }

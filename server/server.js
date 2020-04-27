@@ -3,7 +3,8 @@ const fetch = require("node-fetch");
 const app = express();
 
 // Примитивная замена БД.
-let REPOS_CATALOG = [];
+let REPOS_CATALOG = {};
+let _forksCount = 0;
 
 // Подключили плагин для работы с json.
 app.use(express.json());
@@ -14,7 +15,6 @@ app.use(function(req, res, next) {
 });
 
 app.get('/forkscount', (req, res) => {
-  console.log('Объект query-строка: ', req.query);
   let { repoOwner, repoName } = req.query;
   let url = `https://api.github.com/search/repositories?q=user:${repoOwner} repo:${repoName} ${repoName}`;
 
@@ -36,6 +36,7 @@ async function fetchForksCount(url) {
       ]          
     } = repoInfo;
 
+    _forksCount = forks;
     return forks;
   } catch (error) {
     throw error;
@@ -43,11 +44,9 @@ async function fetchForksCount(url) {
 }
 
 app.get('/forks', (req, res) => {
-  console.log('Объект query-строка: ', req.query);
   let { repoOwner, repoName, page = 1 } = req.query;
   let url = `https://api.github.com/repos/${repoOwner}/${repoName}/forks`;
   let specifiedURL = (page > 1) ? url + `?page=${page}` : url;
-  console.log('specifiedURL: ', specifiedURL);
   let params = {
     url: specifiedURL,
     repoOwner,
@@ -109,6 +108,13 @@ async function fetchForks(params) {
       return simpleFork;
     });
 
+    let repoInfo = {
+      page,
+      forks,
+      searchStr: `${repoOwner}/${repoName}`
+    }; 
+    updateReposCatalog(repoInfo);
+
     data.forks = forks;
     return data;
   } catch (error) {
@@ -116,22 +122,49 @@ async function fetchForks(params) {
   }
 }
 
-// app.get('/searchpage', (req, res) => {
-//   const query = req.query;
-//   console.log('Объект query-строка: ', query);
-// });
+app.get('/search', (req, res) => {
+  let { repository } = req.query;
+  let data = {
+    size: 0,
+    forks: [],
+    searchStr: ''
+  };
+
+  for (let key in REPOS_CATALOG) {
+    if (key.includes(repository)) {
+      data.searchStr = key;      
+      data.forks = REPOS_CATALOG[key].forks;
+      data.forksCount = REPOS_CATALOG[key].forksCount;
+      data.size = REPOS_CATALOG[key].forks.length;
+    }
+  }
+
+  res.send(JSON.stringify(data));
+});
 
 function configReposCatalog(confObj) {
-  let {repoOwner, repoName, length} = confObj;
+  let {repoOwner, repoName, size} = confObj;
   let key = repoOwner + '/' + repoName;
   let newRepo = {
     [key]: {
       repoName,
       repoOwner,
-      forks: new Array(length)
+      forksCount: _forksCount,
+      forks: new Array(size)
     }
   };
+
   REPOS_CATALOG = Object.assign(REPOS_CATALOG, newRepo);
+}
+
+function updateReposCatalog(repoInfo) {
+  let {
+    page,
+    forks,
+    searchStr,
+  } = repoInfo;
+
+  REPOS_CATALOG[searchStr].forks[page - 1] = forks;
 }
 
 app.listen(8080, () => console.log('Server has been started on port 8080...'));

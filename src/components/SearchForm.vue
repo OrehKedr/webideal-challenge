@@ -28,7 +28,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['fetchForks', 'fetchForksCount', 'readCachedRepo', 'storeSearchStr']),
+    ...mapActions(['fetchForks', 'fetchForksCount', 'readCachedRepo', 'storeSearchStr', 'storeCurrentPageRT']),
     async onSubmit() {
       let params = {
           page: 1,
@@ -40,6 +40,7 @@ export default {
         this.readCachedRepo(params);
         this.storeSearchStr(this.form.searchStr);
       } else {
+        this.storeCurrentPageRT(1);
         await this.fetchForksCount(this.form.searchStr);
         if (this.forksCount !== 0) {
           await this.fetchForks(params);

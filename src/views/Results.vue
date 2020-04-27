@@ -19,7 +19,7 @@
 import ResultsTable from '@/components/ResultsTable';
 import SearchForm from '@/components/SearchForm';
 import Loader from '@/components/Loader';
-import {mapGetters} from 'vuex';
+import {mapGetters, mapActions} from 'vuex';
 
 export default {
   name: 'Results',
@@ -31,13 +31,15 @@ export default {
   computed: {
     ...mapGetters(['isLoading', 'forksCount'])
   },
-  async beforeRouteEnter(to, from, next) {
-    const url = `http://localhost:3000${to.fullPath}`;
-    let response = await fetch(url);
-    console.log('Внутри навигационного хука beforeRouteEnter, url: ', url);
-    console.log('Внутри навигационного хука beforeRouteEnter, to: ', to);
-    console.log('Внутри навигационного хука beforeRouteEnter, from: ', from);
-    next(true);
+  methods: mapActions(['fetchSearchPage']),
+  beforeRouteEnter(to, from, next) {
+    if (to.name == 'Search') {
+      let params = {
+        page: parseInt(to.query.page),
+        repository: to.query.repository
+      };
+      next( vm => vm.fetchSearchPage(params) );
+    } else next();
   }
 }
 </script>

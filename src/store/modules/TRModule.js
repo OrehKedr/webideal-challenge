@@ -3,6 +3,7 @@ export default {
     url: '',            // Буфферное значение URL. Используется при пагинации Таблицы результатов.
     proxiURL: 'http://localhost:8080',
     error: null,
+    perPage: 10,        // Количество форков на страницу таблицы "результат поиска".
     searchStr: '',      // Буфферное значение. Запрос в форме поиска.
     reposCatalog: {},   // Каталог по Репозиториям. Кэшированные данные всех результатов поисков.
     forksCount: 0,      // Кол-во форков. Для каждого репозитория специфичное значение.
@@ -139,6 +140,42 @@ export default {
       commit('endLoading');
     },
 
+    async fetchSearchPage({ commit, state }, params ) {
+      commit('startLoading');   // Отображаем компонент с анимацией загрузки.
+      // page - страница пагинации в таблице результатов.
+      let { repository, page } = params;
+      let  url = `${state.proxiURL}/search/?repository=${repository}`;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const res = await response.json();
+        commit('setForksPerPage', res.forks[0].length);    // Запоминаем количество форков на страницу(порцию данных) ответа с API.
+
+        let searchStr = res.searchStr;
+        let confObj = {
+          searchStr,
+          length: res.size
+        };        
+        let reqPage = Math.ceil(page * state.perPage / state.forksPerPage);   // reqPage - страница запроса/порция данных c API.
+        let repoInfo = {
+          searchStr,
+          page: reqPage,
+          forks: res.forks[reqPage - 1]
+        };
+
+        commit('setForksCount', res.forksCount);
+        commit('configReposCatalog', confObj);
+        commit('setSearchStr', searchStr);              // Запоминаем строку в форме поиска.        
+        commit('updateReposCatalog', repoInfo);         // Сохраняем в Catalog массив форков репозитория.
+        commit('setCurrentPageRT', page);
+      } else {
+        console.warn('Ошибка HTTP: ' + response.status);
+        commit('setError', response);
+      }
+
+      commit('endLoading');
+    },
+
     storeCurrentPageRT({ commit }, page) {
       commit('setCurrentPageRT', page);
     },
@@ -157,6 +194,7 @@ export default {
     },
     isLoading: state => state.isLoading,
     forksCount: state => state.forksCount,
+    perPage: state => state.perPage,
     forksPerReqPage: state => state.forksPerPage,
     reqURL: state => state.url,
     currentPageRT: state => state.currentPageRT,
