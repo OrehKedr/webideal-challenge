@@ -4,10 +4,14 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "proxi": "node server/server.js",
+    "proxidev": "nodemon server/server.js"
   },
   "dependencies": {
     "core-js": "^3.6.4",
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.0",
     "vue": "^2.6.11",
     "vue-router": "^3.1.6",
     "vuex": "^3.1.3"
@@ -17,6 +21,7 @@
     "@vue/cli-plugin-router": "~4.3.0",
     "@vue/cli-plugin-vuex": "~4.3.0",
     "@vue/cli-service": "~4.3.0",
+    "nodemon": "^2.0.3",
     "vue-template-compiler": "^2.6.11"
   }
 }

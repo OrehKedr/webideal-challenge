@@ -32,7 +32,6 @@ export default {
     async onSubmit() {
       let params = {
           page: 1,
-          url: this.forksReqURL,
           searchStr: this.form.searchStr
       };
       // Если ранее делали запрос по такой строке,
@@ -41,7 +40,7 @@ export default {
         this.readCachedRepo(params);
         this.storeSearchStr(this.form.searchStr);
       } else {
-        await this.fetchForksCount(this.forksCountReqURL);
+        await this.fetchForksCount(this.form.searchStr);
         if (this.forksCount !== 0) {
           await this.fetchForks(params);
         } else {
@@ -60,17 +59,7 @@ export default {
       // Можно продумать сложный алгоритм проверки 
       // введёного значения пути на валидность.
       return this.form.searchStr.trim();
-    },
-    forksReqURL() {
-      let repo = this.form.searchStr.trim();
-      return `https://api.github.com/repos/${repo}/forks`;
-    },
-    forksCountReqURL() {
-      let arr = this.form.searchStr.trim().split('/');
-      let [repoOwner, repoName] = arr;
-      //https://api.github.com/search/repositories?q=user:kubernetes repo:enhancements enhancements
-      return `https://api.github.com/search/repositories?q=user:${repoOwner} repo:${repoName} ${repoName}`;
-    },
+    }
   },
   watch: {
     // Для экземпляров SearchForm синхронизируем 

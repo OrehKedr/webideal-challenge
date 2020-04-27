@@ -88,14 +88,6 @@ export default {
   },
   created() {
     this.currentPage = this.currentPageRT;
-
-    // if (this.$route.name == 'seacrh&page') {
-    //   let repoName = this.$route.query;
-    //   let page = this.$router.params.pathMatch;
-    //   console.log('this.$route.name: ', this.$route.name);
-    //   console.log('repoName: ', repoName);
-    //   console.log('page: ', page);
-    // }
   },
   mounted() {
     // console.log('ResultTable mounted-хук');

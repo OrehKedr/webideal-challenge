@@ -1,6 +1,8 @@
 export default {
   state: {
     url: '',            // Буфферное значение URL. Используется при пагинации Таблицы результатов.
+    proxiURL: 'http://localhost:8080',
+    error: null,
     searchStr: '',      // Буфферное значение. Запрос в форме поиска.
     reposCatalog: {},   // Каталог по Репозиториям. Кэшированные данные всех результатов поисков.
     forksCount: 0,      // Кол-во форков. Для каждого репозитория специфичное значение.
@@ -9,6 +11,12 @@ export default {
     isLoading: false    // Флаг загрузки. Вкл./выкл. анимацию.
   },
   mutations: {
+    setError(state, error) {
+      state.error = error;
+    },
+    clearError(state) {
+      state.error = null;
+    },
     configReposCatalog(state, confObj) {
       let {searchStr, length} = confObj;
       let arr = searchStr.split('/');
@@ -64,99 +72,68 @@ export default {
   },
   actions: {
     // Получаем количество форков для репозитория.
-    async fetchForksCount({ commit }, url) {
+    async fetchForksCount({ commit, state }, searchStr) {
       commit('startLoading');
+
+      let [ repoOwner, repoName ] = searchStr.trim().split('/');
+      let url = `${state.proxiURL}/forkscount?repoOwner=${repoOwner}&repoName=${repoName}`;
+
+      // Запрос на proxi-сервер.
       const response = await fetch(url);
-
       if (response.ok) {
-        const repo_info = await response.json();
-        let {
-          items: [
-            {
-              forks
-            }
-          ]          
-        } = repo_info;
-
+        const forks = await response.json();
         commit('setForksCount', forks);
-        commit('endLoading');
+
       } else {
         console.warn('Ошибка HTTP: ' + response.status);
-        commit('endLoading');
+        commit('setError', response);
       }
+
+      commit('endLoading');
     },
 
     async fetchForks({ commit, state }, params) {      
       commit('startLoading');   // Отображаем компонент с анимацией загрузки.
-      let {url, page, searchStr} = params;
+      let { page, searchStr } = params;
+      let [ repoOwner, repoName ] = searchStr.trim().split('/');
+      let  url = `${state.proxiURL}/forks/?repoOwner=${repoOwner}&repoName=${repoName}`;
 
       if (page == 1) {
         commit('setURL', url);
       }
 
-      let specifiedURL = (page > 1) ? url + `?page=${page}` : url;
+      let specifiedURL = (page > 1) ? url + `&page=${page}` : url;
       
       const response = await fetch(specifiedURL);  // Получаем заголовки ответа.
       if (response.ok) {
+        const res = await response.json();  // Получаем тело ответа.
 
         if (page == 1) {
-          // Разбор заголовка link, вытащить значение кол-во страниц/порций данных.
-          let headerLinkStr = response.headers.get('link');
-          let linksArr = headerLinkStr.split(',');
-          let linkLastStr = linksArr.find( link => link.includes('rel=\"last\"'));
-          let lastPage = linkLastStr
-            .match(/\?page=\d*/)[0]
-            .split('=')[1];
-
           let confObj = {
             searchStr,
-            length: parseInt(lastPage)
+            length: res.size
           };
-
           commit('configReposCatalog', confObj);
+          commit('setSearchStr', searchStr);              // Запоминаем строку в форме поиска.
+          commit('setForksPerPage', res.forks.length);    // Запоминаем количество форков на страницу(порцию данных) ответа с API.
         }
-
-        const verboseForks = await response.json();  // Получаем тело ответа.
-
-        const forks = verboseForks.map( (fork, index) => {
-          let {
-            full_name,
-            owner: {
-              login
-            },
-            stargazers_count,
-            html_url
-          } = fork;
-
-          let simpleFork = Object.assign({}, 
-            {id: state.forksPerPage * (page - 1) + index + 1}, 
-            {full_name}, 
-            {login}, 
-            {stargazers_count}, 
-            {html_url}
-          );
-
-          return simpleFork;
-        });
 
         let repoInfo = {
           searchStr,
-          forks,
+          forks: res.forks,
           page
-        };
-        
+        };        
+
         commit('updateReposCatalog', repoInfo);       // Сохраняем в Catalog массив форков репозитория.
-        if (page == 1) {
-          commit('setSearchStr', searchStr);          // Запоминаем строку в форме поиска.
-          commit('setForksPerPage', forks.length);    // Запоминаем количество форков на страницу(порцию данных) ответа с API.
-        }
       } else {  // (!response.ok)
-        console.warn('Ошибка HTTP: ' + response.status);        
+        console.warn('Ошибка HTTP: ' + response.status);
+        commit('setError', response);
+        
         if (page == 1) {
           console.warn('Проверьте значение в поле ввода на соответствие шаблону :owner/:repositoryName');
         } else {
           console.warn('Повторите попытку попозже.');
-        }
+        }   
       }
 
       commit('endLoading');
@@ -178,28 +155,18 @@ export default {
       let searhStr = getters.currentSearchStr;
       return rC.hasOwnProperty(searhStr) ? rC[searhStr].forks : [];
     },
-    isLoading(state) {
-      return state.isLoading;
-    },
-    forksCount(state) {
-      return state.forksCount;
-    },
-    forksPerReqPage(state) {
-      return state.forksPerPage;
-    },
-    reqURL(state) {
-      return state.url;
-    },
-    currentPageRT(state) {
-      return state.currentPageRT;
-    },
-    currentSearchStr(state) {
-      return state.searchStr;
-    },
+    isLoading: state => state.isLoading,
+    forksCount: state => state.forksCount,
+    forksPerReqPage: state => state.forksPerPage,
+    reqURL: state => state.url,
+    currentPageRT: state => state.currentPageRT,
+    currentSearchStr: state => state.searchStr,
+    // Для передачи параметра в геттер возвращаю функцию.
     isCaсhed(state) {
       return (searchStr) => {
         if (state.reposCatalog.hasOwnProperty(searchStr)) return true;
       }
-    }    
+    },
+    error: state => state.error
   }  
 }

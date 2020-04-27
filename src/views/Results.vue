@@ -31,13 +31,13 @@ export default {
   computed: {
     ...mapGetters(['isLoading', 'forksCount'])
   },
-  created() {
-    // console.log('Results created-хук');
-    // console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
-  },
-  updated() {
-    // console.log('Results updated-хук');
-    // console.log('Посмотрим в vuex store, this.$store.state', this.$store.state);
+  async beforeRouteEnter(to, from, next) {
+    const url = `http://localhost:3000${to.fullPath}`;
+    let response = await fetch(url);
+    console.log('Внутри навигационного хука beforeRouteEnter, url: ', url);
+    console.log('Внутри навигационного хука beforeRouteEnter, to: ', to);
+    console.log('Внутри навигационного хука beforeRouteEnter, from: ', from);
+    next(true);
   }
 }
 </script>
